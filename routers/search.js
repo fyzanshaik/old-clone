@@ -1,23 +1,23 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const mongoose = require("mongoose");
-const { Product } = require("../models/product");
-const { Contact } = require("../models/contact");
-const { Category } = require("../models/category");
-const { Store } = require("../models/store");
+const mongoose = require('mongoose');
+const { Product } = require('../models/product');
+const { Contact } = require('../models/contact');
+const { Category } = require('../models/category');
+const { Store } = require('../models/store');
 
-router.get("/searchmail", async (req, res) => {
+router.get('/searchmail', async (req, res) => {
 	try {
 		let result = await Contact.aggregate([
 			{
 				$search: {
-					index: "contactac",
+					index: 'contactac',
 					compound: {
 						should: [
 							{
 								autocomplete: {
 									query: `${req.query.term}`,
-									path: "username",
+									path: 'username',
 									fuzzy: {
 										maxEdits: 2,
 									},
@@ -27,7 +27,7 @@ router.get("/searchmail", async (req, res) => {
 							{
 								autocomplete: {
 									query: `${req.query.term}`,
-									path: "subject",
+									path: 'subject',
 									fuzzy: {
 										maxEdits: 2,
 									},
@@ -37,7 +37,7 @@ router.get("/searchmail", async (req, res) => {
 							{
 								autocomplete: {
 									query: `${req.query.term}`,
-									path: "email",
+									path: 'email',
 									fuzzy: {
 										maxEdits: 2,
 									},
@@ -46,7 +46,7 @@ router.get("/searchmail", async (req, res) => {
 							{
 								autocomplete: {
 									query: `${req.query.term}`,
-									path: "message",
+									path: 'message',
 									fuzzy: {
 										maxEdits: 1,
 									},
@@ -55,13 +55,13 @@ router.get("/searchmail", async (req, res) => {
 						],
 					},
 					highlight: {
-						path: ["username", "message", "email", "subject"],
+						path: ['username', 'message', 'email', 'subject'],
 					},
 				},
 			},
 			{
 				$addFields: {
-					highlights: { $meta: "searchHighlights" },
+					highlights: { $meta: 'searchHighlights' },
 				},
 			},
 		]);
@@ -71,24 +71,24 @@ router.get("/searchmail", async (req, res) => {
 	}
 });
 
-router.get("/searchstore", async (req, res) => {
+router.get('/searchstore', async (req, res) => {
 	try {
-		const arr = req.query.loc.split(",");
-		const arrofno = arr.map(a => Number(a));
+		const arr = req.query.loc.split(',');
+		const arrofno = arr.map((a) => Number(a));
 
 		let result = await Store.aggregate([
 			{
 				$search: {
-					index: "storeac",
+					index: 'storeac',
 					geoWithin: {
 						circle: {
 							center: {
-								type: "Point",
+								type: 'Point',
 								coordinates: arrofno,
 							},
 							radius: 5000,
 						},
-						path: "address.location",
+						path: 'address.location',
 					},
 				},
 			},
@@ -102,7 +102,7 @@ router.get("/searchstore", async (req, res) => {
 	}
 });
 
-router.get("/search", async (req, res) => {
+router.get('/search', async (req, res) => {
 	let val = req.query.name ? req.query.name : null;
 	let color = req.query.color ? req.query.color : null;
 	let tags = req.query.tags ? req.query.tags : null;
@@ -113,13 +113,13 @@ router.get("/search", async (req, res) => {
 	function addSearch(val) {
 		let obj = {
 			$search: {
-				index: "productac",
+				index: 'productac',
 				compound: {
 					should: [
 						{
 							autocomplete: {
 								query: `${val}`,
-								path: "name",
+								path: 'name',
 								fuzzy: {
 									maxEdits: 2,
 								},
@@ -129,7 +129,7 @@ router.get("/search", async (req, res) => {
 						{
 							autocomplete: {
 								query: `${val}`,
-								path: "description",
+								path: 'description',
 								fuzzy: {
 									maxEdits: 2,
 								},
@@ -145,21 +145,21 @@ router.get("/search", async (req, res) => {
 	function matchPrice(price) {
 		if (req.query.price) {
 			switch (req.query.price) {
-				case "all":
+				case 'all':
 					return;
 					break;
 
-				case "price1":
+				case 'price1':
 					price.push(0);
 					price.push(2000);
 					break;
 
-				case "price2":
+				case 'price2':
 					price.push(2000);
 					price.push(4000);
 					break;
 
-				case "price3":
+				case 'price3':
 					price.push(4000);
 					price.push(1000000000000000);
 					break;
@@ -181,7 +181,7 @@ router.get("/search", async (req, res) => {
 		return obj;
 	}
 	function matchColor(color) {
-		if (!color || color === "all") {
+		if (!color || color === 'all') {
 			return;
 		}
 		let obj = {
@@ -190,7 +190,7 @@ router.get("/search", async (req, res) => {
 		return obj;
 	}
 	function matchTags(tags) {
-		if (!tags || tags === "all") {
+		if (!tags || tags === 'all') {
 			return;
 		}
 		let obj = {
@@ -199,13 +199,13 @@ router.get("/search", async (req, res) => {
 		return obj;
 	}
 	function sortPrice(sortby) {
-		if (sortby !== "lowhigh" && sortby !== "highlow") {
+		if (sortby !== 'lowhigh' && sortby !== 'highlow') {
 			return;
 		}
-		if (sortby === "lowhigh") {
+		if (sortby === 'lowhigh') {
 			var price = 1;
 		}
-		if (sortby === "highlow") {
+		if (sortby === 'highlow') {
 			var price = -1;
 		}
 		let obj = {
@@ -216,7 +216,7 @@ router.get("/search", async (req, res) => {
 		return obj;
 	}
 	function newest(sortby) {
-		if (sortby !== "newness") {
+		if (sortby !== 'newness') {
 			return;
 		}
 		let obj = {
@@ -241,29 +241,29 @@ router.get("/search", async (req, res) => {
 		pipeline.push(matchTags(tags));
 		pipeline.push(sortPrice(sortby));
 		pipeline.push(newest(sortby));
-		if (req.query.type === "autocomplete") {
+		if (req.query.type === 'autocomplete') {
 			pipeline.push(limit(5));
 		}
 
-		return pipeline.filter(a => a);
+		return pipeline.filter((a) => a);
 	}
 	const index = createPipeline(val, price, color, tags, sortby);
 
 	try {
 		const product = await Product.aggregate(index);
 
-		const category = await Category.find().select("name");
+		const category = await Category.find().select('name');
 
-		if (req.query.type === "autocomplete") {
+		if (req.query.type === 'autocomplete') {
 			res.send(product);
 		} else {
-			res.render("product", {
+			res.render('product', {
 				product: product,
 				category: category,
 				cart: req.session.cart,
 				sessionId: req.session._id,
 				anAdmin: req.session.anAdmin,
-				pathName: "product",
+				pathName: 'product',
 				val: val,
 				price: pricerange,
 				color: color,
